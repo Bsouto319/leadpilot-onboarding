@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadPilot – Live Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080b0f;
+  --surface: #0f1318;
+  --card: #141920;
+  --border: #1e2830;
+  --accent: #00ff88;
+  --accent2: #00d4ff;
+  --warn: #ff6b35;
+  --text: #e8edf2;
+  --muted: #4a5568;
+  --sms-out: #1a7fe8;
+  --sms-in: #1e2830;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── NOISE TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  position: relative;
+  text-align: center;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 800px; height: 800px;
+  background: radial-gradient(circle, rgba(0,255,136,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,255,136,0.08);
+  border: 1px solid rgba(0,255,136,0.2);
+  color: var(--accent);
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px;
+  margin-bottom: 32px;
+  animation: fadeDown 0.6s ease both;
+}
+
+.badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(42px, 8vw, 88px);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -3px;
+  margin-bottom: 24px;
+  animation: fadeDown 0.6s 0.1s ease both;
+}
+
+.hero h1 .line1 { display: block; color: var(--text); }
+.hero h1 .line2 {
+  display: block;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: clamp(16px, 2.5vw, 20px);
+  color: var(--muted);
+  max-width: 520px;
+  margin: 0 auto 48px;
+  font-weight: 300;
+  animation: fadeDown 0.6s 0.2s ease both;
+}
+
+.hero-sub strong { color: var(--warn); font-weight: 500; }
+
+.cta-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeDown 0.6s 0.3s ease both;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+  padding: 16px 36px;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 15px;
+  font-family: 'Syne', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(0,255,136,0.25);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  padding: 16px 36px;
+  border-radius: 100px;
+  font-weight: 500;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── STATS ── */
+.stats-bar {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 32px 24px;
+  margin: 0;
+  background: var(--surface);
+}
+
+.stat {
+  flex: 1;
+  min-width: 160px;
+  text-align: center;
+  padding: 16px 24px;
+  border-right: 1px solid var(--border);
+}
+.stat:last-child { border-right: none; }
+
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label { font-size: 13px; color: var(--muted); font-weight: 300; }
+
+/* ── PROBLEM SECTION ── */
+.section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+
+.section-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  line-height: 1.05;
+  margin-bottom: 24px;
+}
+
+/* ── COMPARISON ── */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-top: 48px;
+}
+@media (max-width: 640px) { .comparison { grid-template-columns: 1fr; } }
+
+.comp-card {
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid var(--border);
+}
+.comp-card.bad {
+  background: rgba(255,107,53,0.05);
+  border-color: rgba(255,107,53,0.2);
+}
+.comp-card.good {
+  background: rgba(0,255,136,0.04);
+  border-color: rgba(0,255,136,0.2);
+}
+
+.comp-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.bad .comp-label { color: var(--warn); }
+.good .comp-label { color: var(--accent); }
+
+.comp-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.comp-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.comp-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: #a0aec0;
+  line-height: 1.5;
+}
+.comp-list li::before {
+  flex-shrink: 0;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  margin-top: 1px;
+}
+.bad .comp-list li::before { content: '✕'; background: rgba(255,107,53,0.15); color: var(--warn); }
+.good .comp-list li::before { content: '✓'; background: rgba(0,255,136,0.15); color: var(--accent); }
+
+/* ── DEMO SECTION ── */
+.demo-section {
+  padding: 100px 24px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.demo-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+@media (max-width: 768px) { .demo-inner { grid-template-columns: 1fr; } }
+
+.demo-info { position: sticky; top: 40px; }
+
+.demo-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 40px;
+}
+
+.demo-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  opacity: 0.4;
+  transition: opacity 0.3s;
+}
+.demo-step.active { opacity: 1; }
+
+.step-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: background 0.3s, border-color 0.3s;
+}
+.demo-step.active .step-icon {
+  background: rgba(0,255,136,0.1);
+  border-color: rgba(0,255,136,0.3);
+}
+
+.step-text strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.step-text span { font-size: 13px; color: var(--muted); }
+
+/* ── PHONE MOCKUP ── */
+.phone-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.phone {
+  width: 320px;
+  background: #1a1a1a;
+  border-radius: 44px;
+  padding: 16px;
+  box-shadow:
+    0 0 0 1px #333,
+    0 40px 80px rgba(0,0,0,0.8),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  position: relative;
+}
+
+.phone-notch {
+  width: 120px; height: 28px;
+  background: #111;
+  border-radius: 0 0 20px 20px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.phone-notch::after {
+  content: '';
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #222;
+  border: 1px solid #333;
+}
+
+.phone-screen {
+  background: var(--bg);
+  border-radius: 32px;
+  overflow: hidden;
+  min-height: 560px;
+}
+
+.sms-header {
+  background: #1c1c1e;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #000;
+  flex-shrink: 0;
+}
+
+.contact-info strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+.contact-info span {
+  font-size: 11px;
+  color: #888;
+}
+
+.online-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-left: auto;
+  animation: pulse 2s ease infinite;
+}
+
+.messages {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 480px;
+}
+
+.msg {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  animation: msgIn 0.4s ease both;
+  opacity: 0;
+}
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.msg.lead {
+  background: var(--sms-in);
+  color: #e8edf2;
+  border-bottom-left-radius: 4px;
+  align-self: flex-start;
+}
+
+.msg.ai {
+  background: var(--sms-out);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+  align-self: flex-end;
+}
+
+.msg-time {
+  font-size: 10px;
+  color: #555;
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 16px;
+  background: var(--sms-in);
+  border-radius: 18px;
+  border-bottom-left-radius: 4px;
+  width: fit-content;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.typing.show { opacity: 1; }
+.typing span {
+  width: 6px; height: 6px;
+  background: #888;
+  border-radius: 50%;
+  animation: bounce 1.2s ease infinite;
+}
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+/* ── NOTIFICATION ── */
+.notification {
+  position: fixed;
+  top: 24px; right: 24px;
+  background: var(--card);
+  border: 1px solid rgba(0,255,136,0.3);
+  border-radius: 16px;
+  padding: 16px 20px;
+  width: 300px;
+  transform: translateX(360px);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 100;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.notification.show { transform: translateX(0); }
+
+.notif-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.notif-icon { font-size: 16px; }
+.notif-app { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+.notif-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.notif-body { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+/* ── HOW IT WORKS ── */
+.how-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.how-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.how-card:hover {
+  border-color: rgba(0,255,136,0.3);
+  transform: translateY(-4px);
+}
+
+.how-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+
+.how-emoji { font-size: 28px; margin-bottom: 12px; }
+.how-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.how-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ── PRICING ── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.price-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 36px;
+  position: relative;
+  transition: transform 0.3s;
+}
+.price-card:hover { transform: translateY(-4px); }
+.price-card.featured {
+  border-color: rgba(0,255,136,0.4);
+  background: rgba(0,255,136,0.03);
+}
+
+.featured-tag {
+  position: absolute;
+  top: -12px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 16px;
+  border-radius: 100px;
+  letter-spacing: 0.5px;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+
+.price-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.price-amount {
+  font-family: 'Syne', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.price-amount sup { font-size: 24px; letter-spacing: 0; }
+.price-period { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+.price-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+.price-features li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #a0aec0;
+}
+.price-features li::before {
+  content: '✓';
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.btn-price {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: 'Syne', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  display: block;
+}
+.btn-price.outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.btn-price.outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-price.filled {
+  background: var(--accent);
+  color: #000;
+}
+.btn-price.filled:hover { box-shadow: 0 8px 24px rgba(0,255,136,0.3); }
+
+/* ── CTA FINAL ── */
+.final-cta {
+  padding: 120px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.final-cta::before {
+  content: '';
+  position: absolute;
+  bottom: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,212,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.final-cta h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(32px, 6vw, 64px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  margin-bottom: 16px;
+}
+
+.final-cta p {
+  color: var(--muted);
+  font-size: 18px;
+  margin-bottom: 40px;
+  font-weight: 300;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+footer strong { color: var(--text); }
+
+/* ── PROGRESS ── */
+.demo-progress {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 24px;
+}
+.prog-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s;
+  cursor: pointer;
+}
+.prog-dot.active {
+  background: var(--accent);
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* ── SPEED COUNTER ── */
+.speed-display {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  background: rgba(0,255,136,0.08);
+  border: 1px solid rgba(0,255,136,0.2);
+  padding: 12px 24px;
+  border-radius: 12px;
+  margin-top: 32px;
+}
+.speed-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 36px;
+  font-weight: 500;
+  color: var(--accent);
+}
+.speed-label { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- NOTIFICATION (aparece depois) -->
+<div class="notification" id="notif">
+  <div class="notif-header">
+    <span class="notif-icon">📲</span>
+    <span class="notif-app">LEADPILOT ALERT</span>
+  </div>
+  <div class="notif-title">🚨 New Lead – Dellanno Floors</div>
+  <div class="notif-body">👤 Sarah M. | 📋 Hardwood Install<br>✅ AI replied • Calendar updated</div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">LIVE DEMO — SEE IT WORK IN REAL TIME</div>
+  <h1>
+    <span class="line1">Stop losing leads</span>
+    <span class="line2">while you sleep.</span>
+  </h1>
+  <p class="hero-sub">
+    Your competitors respond in <strong>1 minute</strong>.<br>
+    You respond in <strong>a day</strong>. That's costing you jobs.
+  </p>
+  <div class="cta-group">
+    <a href="#demo" class="btn-primary">Watch the Demo ↓</a>
+    <a href="#pricing" class="btn-ghost">See Pricing</a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num">&lt;60s</div>
+    <div class="stat-label">AI response time</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">24/7</div>
+    <div class="stat-label">Always online</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">3×</div>
+    <div class="stat-label">More hires when you reply first</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">$0</div>
+    <div class="stat-label">Tech skills needed</div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="section">
+  <div class="section-tag">// THE PROBLEM</div>
+  <h2 class="section-title">Every hour you wait,<br>someone else books the job.</h2>
+  <p style="color:var(--muted); max-width:520px; font-size:16px; font-weight:300;">
+    Thumbtack leads contact 3–5 pros at once. The first to respond almost always wins.
+    "Responds within a day" means you're already losing.
+  </p>
+
+  <div class="comparison">
+    <div class="comp-card bad">
+      <div class="comp-label">Without LeadPilot</div>
+      <div class="comp-title">Responding manually</div>
+      <ul class="comp-list">
+        <li>Lead contacts you at 11pm — you're asleep</li>
+        <li>You respond next morning — too late</li>
+        <li>Competitor already booked the job</li>
+        <li>You paid Thumbtack for a lead you lost</li>
+        <li>Repeat this 5–10 times per week</li>
+      </ul>
+    </div>
+    <div class="comp-card good">
+      <div class="comp-label">With LeadPilot</div>
+      <div class="comp-title">AI responds instantly</div>
+      <ul class="comp-list">
+        <li>Lead contacts you at 11pm</li>
+        <li>AI replies in under 60 seconds</li>
+        <li>Qualifies lead, sends pricing, books estimate</li>
+        <li>You wake up with a new appointment</li>
+        <li>You just show up and close the job</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section class="demo-section" id="demo">
+  <div class="demo-inner">
+
+    <div class="demo-info">
+      <div class="section-tag">// LIVE SIMULATION</div>
+      <h2 class="section-title" style="font-size:clamp(28px,4vw,44px);">Watch it<br>happen live.</h2>
+      <p style="color:var(--muted); font-size:15px; font-weight:300; margin-bottom:8px;">
+        This is exactly what happens when a lead contacts your business through Thumbtack.
+      </p>
+
+      <div class="speed-display">
+        <span class="speed-num" id="speed-counter">0</span>
+        <span class="speed-label">seconds to first reply</span>
+      </div>
+
+      <div class="demo-steps" id="demo-steps">
+        <div class="demo-step" id="step-0">
+          <div class="step-icon">📩</div>
+          <div class="step-text">
+            <strong>Lead sends message</strong>
+            <span>Customer contacts your business on Thumbtack</span>
+          </div>
+        </div>
+        <div class="demo-step" id="step-1">
+          <div class="step-icon">⚡</div>
+          <div class="step-text">
+            <strong>AI detects lead instantly</strong>
+            <span>System processes the message in milliseconds</span>
+          </div>
+        </div>
+        <div class="demo-step" id="step-2">
+          <div class="step-icon">🤖</div>
+          <div class="step-text">
+            <strong>GPT-4o generates response</strong>
+            <span>Personalized reply based on your services & pricing</span>
+          </div>
+        </div>
+        <div class="demo-step" id="step-3">
+          <div class="step-icon">📱</div>
+          <div class="step-text">
+            <strong>SMS sent to lead</strong>
+            <span>Lead receives instant professional reply</span>
+          </div>
+        </div>
+        <div class="demo-step" id="step-4">
+          <div class="step-icon">📅</div>
+          <div class="step-text">
+            <strong>Appointment scheduled</strong>
+            <span>Free estimate added to your Google Calendar</span>
+          </div>
+        </div>
+        <div class="demo-step" id="step-5">
+          <div class="step-icon">🔔</div>
+          <div class="step-text">
+            <strong>You get notified</strong>
+            <span>SMS alert with full lead details while you sleep</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-progress" id="demo-progress">
+        <div class="prog-dot active" onclick="goToStep(0)"></div>
+        <div class="prog-dot" onclick="goToStep(1)"></div>
+        <div class="prog-dot" onclick="goToStep(2)"></div>
+        <div class="prog-dot" onclick="goToStep(3)"></div>
+        <div class="prog-dot" onclick="goToStep(4)"></div>
+        <div class="prog-dot" onclick="goToStep(5)"></div>
+      </div>
+
+      <button class="btn-primary" onclick="runDemo()" style="margin-top:32px; border:none;">
+        ▶ Run Demo Again
+      </button>
+    </div>
+
+    <!-- PHONE -->
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="sms-header">
+            <div class="avatar">LP</div>
+            <div class="contact-info">
+              <strong>Dellanno Floors</strong>
+              <span>Business Line · +1 (732) 555-0100</span>
+            </div>
+            <div class="online-dot"></div>
+          </div>
+          <div class="messages" id="messages">
+            <div class="msg-time">Today, 11:47 PM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section">
+  <div class="section-tag">// HOW IT WORKS</div>
+  <h2 class="section-title">Setup in 24 hours.<br>Works forever.</h2>
+
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-num">01</div>
+      <div class="how-emoji">📋</div>
+      <div class="how-title">You fill a quick form</div>
+      <div class="how-desc">Tell us your services, pricing, and availability. Takes 5 minutes. No tech knowledge needed.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">02</div>
+      <div class="how-emoji">⚙️</div>
+      <div class="how-title">We configure everything</div>
+      <div class="how-desc">We set up your dedicated phone number, AI responses, and calendar integration within 24 hours.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">03</div>
+      <div class="how-emoji">🚀</div>
+      <div class="how-title">Go live instantly</div>
+      <div class="how-desc">Your AI starts responding to every lead in under 60 seconds — even at 3am on a Sunday.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">04</div>
+      <div class="how-emoji">💰</div>
+      <div class="how-title">You just show up</div>
+      <div class="how-desc">Wake up to new appointments already scheduled. You focus on the work, AI handles the leads.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="section-tag">// PRICING</div>
+  <h2 class="section-title">One extra job pays<br>for the whole year.</h2>
+
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-name">Starter</div>
+      <div class="price-amount"><sup>$</sup>197</div>
+      <div class="price-period">setup + $97/month</div>
+      <ul class="price-features">
+        <li>1 dedicated phone number</li>
+        <li>AI lead response (SMS)</li>
+        <li>1 service type</li>
+        <li>SMS owner notifications</li>
+        <li>Google Calendar integration</li>
+        <li>Monthly performance report</li>
+      </ul>
+      <a href="mailto:brunosouto1108@gmail.com?subject=LeadPilot Starter" class="btn-price outline">Get Started</a>
+    </div>
+
+    <div class="price-card featured">
+      <div class="featured-tag">MOST POPULAR</div>
+      <div class="price-name">Pro</div>
+      <div class="price-amount"><sup>$</sup>297</div>
+      <div class="price-period">setup + $147/month</div>
+      <ul class="price-features">
+        <li>1 dedicated phone number</li>
+        <li>AI lead response (SMS + Thumbtack)</li>
+        <li>Up to 3 service types</li>
+        <li>SMS owner notifications</li>
+        <li>Google Calendar integration</li>
+        <li>Anti-duplicate lead protection</li>
+        <li>Priority support (24h response)</li>
+        <li>Monthly optimization call</li>
+      </ul>
+      <a href="mailto:brunosouto1108@gmail.com?subject=LeadPilot Pro" class="btn-price filled">Get Started</a>
+    </div>
+  </div>
+
+  <p style="text-align:center; color:var(--muted); font-size:13px; margin-top:24px;">
+    Average flooring job = $3,000–$8,000 · Average cleaning recurring = $150–$300/month<br>
+    <strong style="color:var(--text);">One extra job per month covers the entire cost.</strong>
+  </p>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <h2>Ready to never<br>miss a lead again?</h2>
+  <p>Setup takes 24 hours. ROI starts immediately.</p>
+  <div class="cta-group">
+    <a href="mailto:brunosouto1108@gmail.com?subject=I want LeadPilot" class="btn-primary">Contact Bruno →</a>
+    <a href="tel:+5561993988147" class="btn-ghost">📱 +55 61 9398-8147</a>
+  </div>
+</section>
+
+<footer>
+  <strong>LeadPilot</strong> by BTechSouto Automations · Built for home service pros in the USA<br>
+  <span style="font-size:11px; margin-top:8px; display:block;">Powered by n8n · Twilio · GPT-4o · Supabase</span>
+</footer>
+
+<script>
+const DEMO_MESSAGES = [
+  { type: 'lead', text: "Hi, I'm looking to install hardwood floors in my living room and hallway. Do you have availability for a free estimate?", delay: 500 },
+  { type: 'typing', delay: 1800 },
+  { type: 'ai', text: "Hi! Thanks for reaching out to Dellanno Floors 👋 We'd love to help with your hardwood installation! Could you tell us the approximate square footage and your preferred dates for a FREE in-home estimate?", delay: 3200 },
+  { type: 'lead', text: "About 400 sq ft. I'm free this Thursday or Friday afternoon.", delay: 5500 },
+  { type: 'typing', delay: 7000 },
+  { type: 'ai', text: "Perfect! I've scheduled a FREE estimate for Thursday at 2pm. You'll receive a confirmation shortly. Our team will assess the area and provide exact pricing. See you then! 📅", delay: 8500 },
+  { type: 'notify', delay: 9500 },
+];
+
+let currentStep = 0;
+let demoRunning = false;
+let speedInterval;
+
+function addMessage(type, text) {
+  const messages = document.getElementById('messages');
+  if (type === 'typing') {
+    const t = document.createElement('div');
+    t.className = 'typing'; t.id = 'typing-indicator';
+    t.innerHTML = '<span></span><span></span><span></span>';
+    messages.appendChild(t);
+    setTimeout(() => t.classList.add('show'), 50);
+    messages.scrollTop = messages.scrollHeight;
+    return;
+  }
+  const el = document.createElement('div');
+  el.className = `msg ${type}`;
+  el.textContent = text;
+  // Remove typing indicator
+  const typing = document.getElementById('typing-indicator');
+  if (typing) typing.remove();
+  messages.appendChild(el);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function activateStep(n) {
+  document.querySelectorAll('.demo-step').forEach((el, i) => {
+    el.classList.toggle('active', i === n);
+  });
+  document.querySelectorAll('.prog-dot').forEach((el, i) => {
+    el.classList.toggle('active', i === n);
+  });
+  currentStep = n;
+}
+
+function goToStep(n) { activateStep(n); }
+
+function startSpeedCounter() {
+  let t = 0;
+  const el = document.getElementById('speed-counter');
+  el.textContent = '0';
+  speedInterval = setInterval(() => {
+    t += 0.1;
+    el.textContent = t.toFixed(1);
+    if (t >= 47) { clearInterval(speedInterval); el.textContent = '47'; }
+  }, 80);
+}
+
+function runDemo() {
+  if (demoRunning) return;
+  demoRunning = true;
+
+  // Reset
+  clearInterval(speedInterval);
+  document.getElementById('messages').innerHTML = '<div class="msg-time">Today, 11:47 PM</div>';
+  document.getElementById('notif').classList.remove('show');
+  document.getElementById('speed-counter').textContent = '0';
+  activateStep(0);
+
+  DEMO_MESSAGES.forEach((item, i) => {
+    setTimeout(() => {
+      if (item.type === 'notify') {
+        document.getElementById('notif').classList.add('show');
+        activateStep(5);
+        setTimeout(() => document.getElementById('notif').classList.remove('show'), 5000);
+        demoRunning = false;
+        return;
+      }
+      if (item.type === 'typing') {
+        addMessage('typing');
+        activateStep(2);
+        return;
+      }
+      if (item.type === 'lead') {
+        addMessage('lead', item.text);
+        activateStep(i === 0 ? 1 : 3);
+        if (i === 0) startSpeedCounter();
+      }
+      if (item.type === 'ai') {
+        clearInterval(speedInterval);
+        document.getElementById('speed-counter').textContent = i === 2 ? '47' : '12';
+        addMessage('ai', item.text);
+        activateStep(i === 2 ? 3 : 4);
+      }
+    }, item.delay);
+  });
+}
+
+// Auto-run when demo section enters viewport
+const demoSection = document.getElementById('demo');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting && !demoRunning) {
+      setTimeout(runDemo, 600);
+      observer.disconnect();
+    }
+  });
+}, { threshold: 0.3 });
+observer.observe(demoSection);
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+</script>
+</body>
+</html>

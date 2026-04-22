@@ -1,0 +1,324 @@
+{
+  "name": "LeadPilot – SMS + Thumbtack Email → AI → SMS Response + Owner Notification",
+  "nodes": [
+
+    {
+      "id": "trigger_twilio_sms",
+      "name": "📱 Twilio Trigger – SMS Recebido",
+      "type": "n8n-nodes-base.twilioTrigger",
+      "typeVersion": 1,
+      "position": [200, 200],
+      "webhookId": "twilio-inbound-sms",
+      "parameters": {},
+      "notes": "Configure no Twilio Console: Phone Numbers → seu número → Messaging → Webhook URL = https://n8n.btechsouto.shop/webhook/twilio-inbound-sms"
+    },
+
+    {
+      "id": "trigger_gmail",
+      "name": "📧 Gmail Trigger – Thumbtack Email",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [200, 480],
+      "parameters": {
+        "pollTimes": { "item": [{ "mode": "everyMinute" }] },
+        "filters": { "sender": "no-reply@thumbtack.com", "readStatus": "unread" },
+        "format": "resolved"
+      },
+      "notes": "Monitora inbox a cada 1 min. Ajuste o sender se o Thumbtack usar outro email de envio."
+    },
+
+    {
+      "id": "normalize_sms",
+      "name": "🔄 Normaliza – Entrada SMS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 200],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\n// Twilio envia: From, To, Body\nconst leadPhone = (data.From || '').replace(/\\D/g, '');\nconst toNumber  = (data.To   || '').replace(/[^+\\d]/g, '');\nconst message   = data.Body  || '';\n\n// Detecta tipo de serviço pela mensagem\nconst msg = message.toLowerCase();\nlet serviceType = 'general';\nif (msg.includes('clean') || msg.includes('maid') || msg.includes('housekeep')) {\n  serviceType = 'cleaning';\n} else if (msg.includes('construc') || msg.includes('remodel') || msg.includes('renovati')) {\n  serviceType = 'construction';\n} else if (msg.includes('install') || msg.includes('mount') || msg.includes('assembl')) {\n  serviceType = 'installation';\n}\n\nreturn [{ json: {\n  channel: 'sms',\n  leadPhone,\n  leadName: 'Customer',\n  toNumber,\n  message,\n  serviceType,\n  rawData: data\n}}];"
+      }
+    },
+
+    {
+      "id": "normalize_email",
+      "name": "🔄 Normaliza – Entrada Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 480],
+      "parameters": {
+        "jsCode": "const email = $input.first().json;\n\nconst subject = email.subject || '';\nconst body    = email.text || email.snippet || '';\nconst toAddr  = email.to   || '';\n\n// Extrai nome do lead do subject Thumbtack\n// Ex: \"John S. is interested in your services\"\nconst nameMatch = subject.match(/^([A-Za-z]+(?:\\s[A-Za-z]\\.?)?)\\s+is interested/) ||\n                  body.match(/([A-Za-z]+(?:\\s[A-Za-z]\\.?)?)\\s+sent you a message/);\nconst leadName = nameMatch ? nameMatch[1] : 'New Customer';\n\n// Extrai número do lead se vier no body do email\nconst phoneMatch = body.match(/(?:\\+?1[\\s.-]?)?\\(?([0-9]{3})\\)?[\\s.-]?([0-9]{3})[\\s.-]?([0-9]{4})/);\nconst leadPhone = phoneMatch ? phoneMatch[0].replace(/\\D/g,'') : null;\n\n// Detecta serviço\nconst combined = (subject + ' ' + body).toLowerCase();\nlet serviceType = 'general';\nif (combined.includes('clean') || combined.includes('maid')) {\n  serviceType = 'cleaning';\n} else if (combined.includes('construc') || combined.includes('remodel')) {\n  serviceType = 'construction';\n} else if (combined.includes('install') || combined.includes('mount')) {\n  serviceType = 'installation';\n}\n\nreturn [{ json: {\n  channel: 'thumbtack_email',\n  leadPhone,\n  leadName,\n  toAddress: toAddr,\n  message: body,\n  serviceType,\n  emailSubject: subject,\n  rawData: email\n}}];"
+      }
+    },
+
+    {
+      "id": "merge_channels",
+      "name": "🔀 Merge – Une os 2 canais",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [700, 340],
+      "parameters": {
+        "mode": "passThrough",
+        "output": "input1"
+      },
+      "notes": "Recebe dados normalizados de ambos os canais com a mesma estrutura."
+    },
+
+    {
+      "id": "supabase_get_client",
+      "name": "🗄️ Supabase – Busca cliente pelo número Twilio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [940, 340],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/clients",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "twilio_number", "value": "=eq.{{ $json.toNumber || $json.toAddress }}" },
+            { "name": "active",        "value": "eq.true" },
+            { "name": "select",        "value": "*,pricing(*)" }
+          ]
+        }
+      },
+      "notes": "Busca config do cliente pelo número Twilio (SMS) ou email (Thumbtack). Configure SUPABASE_URL e SUPABASE_ANON_KEY nas variáveis de ambiente do n8n."
+    },
+
+    {
+      "id": "check_duplicate",
+      "name": "🛡️ Anti-Duplicata – Verifica lead recente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1180, 340],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/rpc/check_duplicate_lead",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"p_client_id\": \"{{ $('🗄️ Supabase – Busca cliente pelo número Twilio').first().json[0].id }}\",\n  \"p_lead_phone\": \"{{ $('🔀 Merge – Une os 2 canais').first().json.leadPhone }}\",\n  \"p_minutes\": 60\n}"
+      },
+      "notes": "Chama a função check_duplicate_lead() criada no Supabase. Retorna true/false."
+    },
+
+    {
+      "id": "if_duplicate",
+      "name": "❓ É duplicata?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1420, 340],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false },
+          "conditions": [
+            {
+              "leftValue":  "={{ $json }}",
+              "operator":   { "type": "boolean", "operation": "true" },
+              "rightValue": true
+            }
+          ]
+        }
+      },
+      "notes": "TRUE → para (duplicata). FALSE → continua para o GPT-4o."
+    },
+
+    {
+      "id": "stop_duplicate",
+      "name": "🚫 Para – Lead duplicado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1660, 200],
+      "notes": "Lead já foi respondido nos últimos 60 minutos. Workflow encerrado sem ação."
+    },
+
+    {
+      "id": "save_lead",
+      "name": "💾 Supabase – Salva novo lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1660, 480],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/conversations",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" },
+            { "name": "Prefer",        "value": "return=representation" }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"client_id\":    \"{{ $('🗄️ Supabase – Busca cliente pelo número Twilio').first().json[0].id }}\",\n  \"lead_name\":    \"{{ $('🔀 Merge – Une os 2 canais').first().json.leadName }}\",\n  \"lead_phone\":   \"{{ $('🔀 Merge – Une os 2 canais').first().json.leadPhone }}\",\n  \"source\":       \"{{ $('🔀 Merge – Une os 2 canais').first().json.channel }}\",\n  \"stage\":        \"new_lead\",\n  \"service_type\": \"{{ $('🔀 Merge – Une os 2 canais').first().json.serviceType }}\",\n  \"email_body\":   \"{{ $('🔀 Merge – Une os 2 canais').first().json.message }}\"\n}"
+      }
+    },
+
+    {
+      "id": "gpt4o",
+      "name": "🤖 GPT-4o – Gera resposta SMS",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [1900, 480],
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=You are a professional sales assistant for {{ $('🗄️ Supabase – Busca cliente pelo número Twilio').first().json[0].business_name }}, a home services company.\n\nRespond via SMS — keep it SHORT (max 160 chars per message), friendly, and professional.\n\nService type detected: {{ $('🔀 Merge – Une os 2 canais').first().json.serviceType }}\n\nPricing for this client:\n{{ JSON.stringify($('🗄️ Supabase – Busca cliente pelo número Twilio').first().json[0].pricing) }}\n\nRules by service:\n- CLEANING: Greet, mention pricing, ask how many bedrooms and preferred frequency (weekly/biweekly/monthly).\n- CONSTRUCTION: Greet, ask type of project and address for a free estimate.\n- INSTALLATION: Greet, ask what needs to be installed and preferred date/time.\n- GENERAL: Greet, ask what service they need.\n\nAlways end with a clear question or call to action.\nRespond ONLY with the SMS text. No quotes, no explanations."
+            },
+            {
+              "role": "user",
+              "content": "=Lead name: {{ $('🔀 Merge – Une os 2 canais').first().json.leadName }}\nMessage received: {{ $('🔀 Merge – Une os 2 canais').first().json.message }}\n\nWrite the SMS reply."
+            }
+          ]
+        },
+        "options": { "maxTokens": 200, "temperature": 0.7 }
+      }
+    },
+
+    {
+      "id": "twilio_reply_lead",
+      "name": "📤 Twilio – Responde SMS ao lead",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [2140, 340],
+      "parameters": {
+        "operation": "send",
+        "from": "={{ $('🗄️ Supabase – Busca cliente pelo número Twilio').first().json[0].twilio_number }}",
+        "to":   "={{ $('🔀 Merge – Une os 2 canais').first().json.leadPhone }}",
+        "message": "={{ $json.message.content }}"
+      },
+      "notes": "Só executa se leadPhone existir. Para leads vindos do Thumbtack sem número, este node é ignorado e só a notificação pro dono é enviada."
+    },
+
+    {
+      "id": "twilio_notify_owner",
+      "name": "🔔 Twilio – Notifica dono por SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [2140, 560],
+      "parameters": {
+        "operation": "send",
+        "from": "={{ $('🗄️ Supabase – Busca cliente pelo número Twilio').first().json[0].twilio_number }}",
+        "to":   "={{ $('🗄️ Supabase – Busca cliente pelo número Twilio').first().json[0].owner_phone }}",
+        "message": "=🚨 New Lead!\n👤 {{ $('🔀 Merge – Une os 2 canais').first().json.leadName }}\n📋 Service: {{ $('🔀 Merge – Une os 2 canais').first().json.serviceType }}\n📩 Via: {{ $('🔀 Merge – Une os 2 canais').first().json.channel }}\n\n✅ AI replied automatically.\nCheck your calendar for follow-up."
+      },
+      "notes": "Notifica o dono do negócio via SMS com resumo do lead e confirmação de que a IA já respondeu."
+    },
+
+    {
+      "id": "google_calendar",
+      "name": "📅 Google Calendar – Cria follow-up",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [2140, 760],
+      "parameters": {
+        "operation": "create",
+        "calendarId": "={{ $('🗄️ Supabase – Busca cliente pelo número Twilio').first().json[0].google_calendar_id }}",
+        "start": "={{ $now.plus({days: 1}).startOf('hour').toISO() }}",
+        "end":   "={{ $now.plus({days: 1, hours: 1}).startOf('hour').toISO() }}",
+        "additionalFields": {
+          "summary": "=Follow-up: {{ $('🔀 Merge – Une os 2 canais').first().json.leadName }} – {{ $('🔀 Merge – Une os 2 canais').first().json.serviceType }}",
+          "description": "=Lead Source: {{ $('🔀 Merge – Une os 2 canais').first().json.channel }}\nPhone: {{ $('🔀 Merge – Une os 2 canais').first().json.leadPhone }}\nService: {{ $('🔀 Merge – Une os 2 canais').first().json.serviceType }}\n\nOriginal message:\n{{ $('🔀 Merge – Une os 2 canais').first().json.message }}\n\nAI replied:\n{{ $('🤖 GPT-4o – Gera resposta SMS').first().json.message.content }}"
+        }
+      }
+    },
+
+    {
+      "id": "supabase_update_lead",
+      "name": "✅ Supabase – Atualiza lead (ai_responded)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2400, 480],
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/conversations?id=eq.{{ $('💾 Supabase – Salva novo lead').first().json[0].id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey",        "value": "={{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_ANON_KEY }}" },
+            { "name": "Content-Type",  "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"stage\": \"ai_responded\",\n  \"ai_response\": \"{{ $('🤖 GPT-4o – Gera resposta SMS').first().json.message.content }}\",\n  \"last_response_at\": \"{{ $now.toISO() }}\"\n}"
+      },
+      "notes": "Atualiza stage e last_response_at — esse campo é o que o anti-duplicata usa na próxima execução."
+    }
+
+  ],
+
+  "connections": {
+    "📱 Twilio Trigger – SMS Recebido": {
+      "main": [[{ "node": "🔄 Normaliza – Entrada SMS", "type": "main", "index": 0 }]]
+    },
+    "📧 Gmail Trigger – Thumbtack Email": {
+      "main": [[{ "node": "🔄 Normaliza – Entrada Email", "type": "main", "index": 0 }]]
+    },
+    "🔄 Normaliza – Entrada SMS": {
+      "main": [[{ "node": "🔀 Merge – Une os 2 canais", "type": "main", "index": 0 }]]
+    },
+    "🔄 Normaliza – Entrada Email": {
+      "main": [[{ "node": "🔀 Merge – Une os 2 canais", "type": "main", "index": 1 }]]
+    },
+    "🔀 Merge – Une os 2 canais": {
+      "main": [[{ "node": "🗄️ Supabase – Busca cliente pelo número Twilio", "type": "main", "index": 0 }]]
+    },
+    "🗄️ Supabase – Busca cliente pelo número Twilio": {
+      "main": [[{ "node": "🛡️ Anti-Duplicata – Verifica lead recente", "type": "main", "index": 0 }]]
+    },
+    "🛡️ Anti-Duplicata – Verifica lead recente": {
+      "main": [[{ "node": "❓ É duplicata?", "type": "main", "index": 0 }]]
+    },
+    "❓ É duplicata?": {
+      "main": [
+        [{ "node": "🚫 Para – Lead duplicado",    "type": "main", "index": 0 }],
+        [{ "node": "💾 Supabase – Salva novo lead", "type": "main", "index": 0 }]
+      ]
+    },
+    "💾 Supabase – Salva novo lead": {
+      "main": [[{ "node": "🤖 GPT-4o – Gera resposta SMS", "type": "main", "index": 0 }]]
+    },
+    "🤖 GPT-4o – Gera resposta SMS": {
+      "main": [[
+        { "node": "📤 Twilio – Responde SMS ao lead",  "type": "main", "index": 0 },
+        { "node": "🔔 Twilio – Notifica dono por SMS", "type": "main", "index": 0 },
+        { "node": "📅 Google Calendar – Cria follow-up","type": "main", "index": 0 }
+      ]]
+    },
+    "📤 Twilio – Responde SMS ao lead": {
+      "main": [[{ "node": "✅ Supabase – Atualiza lead (ai_responded)", "type": "main", "index": 0 }]]
+    },
+    "🔔 Twilio – Notifica dono por SMS": {
+      "main": [[{ "node": "✅ Supabase – Atualiza lead (ai_responded)", "type": "main", "index": 0 }]]
+    },
+    "📅 Google Calendar – Cria follow-up": {
+      "main": [[{ "node": "✅ Supabase – Atualiza lead (ai_responded)", "type": "main", "index": 0 }]]
+    }
+  },
+
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+
+  "tags": ["leadpilot", "twilio", "sms", "thumbtack", "gpt4o", "usa", "home-services"]
+}
