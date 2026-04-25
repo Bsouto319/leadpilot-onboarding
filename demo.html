@@ -464,6 +464,8 @@ h1 span { color: var(--blue); }
   Built by <a href="/">LeadPilot</a> · AI Lead Response for Home Service Businesses
 </p>
 
+<audio id="demoAudio" src="audio.aac" preload="auto"></audio>
+
 <script>
 const TOTAL_DURATION = 14000;
 let progressInterval = null;
@@ -532,6 +534,9 @@ const stepTimes = [0, 1200, 2600, 5000, 7800, 9200];
 
 function startDemo() {
   document.getElementById('startWrap').classList.add('hidden');
+  const audio = document.getElementById('demoAudio');
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
   startTime = Date.now();
 
   delay(200,  () => { show('notifOverlay'); soundNotif(); });
