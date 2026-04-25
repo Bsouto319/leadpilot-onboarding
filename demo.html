@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeadPilot – Live Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080b0f;
+  --accent: #00ff88;
+  --accent2: #00d4ff;
+  --text: #e8edf2;
+  --muted: #4a5568;
+  --border: #1e2830;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 800px 600px at 50% 20%, rgba(0,255,136,0.05), transparent 70%),
+              radial-gradient(ellipse 500px 400px at 80% 80%, rgba(0,212,255,0.05), transparent 70%);
+  pointer-events: none;
+}
+
+/* ─── TOP LABEL ─── */
+.top-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.7;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--accent);
+  animation: blink 1.4s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* ─── PHONE ─── */
+.phone-outer {
+  position: relative;
+  width: 340px;
+}
+
+.phone {
+  width: 340px;
+  background: #000;
+  border-radius: 48px;
+  border: 2px solid #2a2a2a;
+  padding: 16px 0 24px;
+  box-shadow:
+    0 0 0 7px #111,
+    0 0 0 8px #222,
+    0 40px 100px rgba(0,0,0,0.8),
+    0 0 80px rgba(0,255,136,0.04);
+  overflow: hidden;
+  position: relative;
+}
+
+/* dynamic island */
+.island {
+  width: 110px; height: 30px;
+  background: #000;
+  border-radius: 20px;
+  margin: 0 auto 10px;
+  border: 1.5px solid #1a1a1a;
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px;
+}
+.island-cam { width: 12px; height: 12px; border-radius: 50%; background: #0a0a0a; border: 2px solid #1a1a1a; }
+.island-mic { width: 4px; height: 4px; border-radius: 50%; background: #1a1a1a; }
+
+/* status bar */
+.status-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 24px 10px;
+  font-size: 11px; font-weight: 600; color: #fff;
+}
+.signal { display: flex; align-items: flex-end; gap: 2px; }
+.bar { background: #fff; border-radius: 1px; width: 3px; }
+.bar1 { height: 4px; }
+.bar2 { height: 7px; }
+.bar3 { height: 10px; }
+.bar4 { height: 13px; opacity: 0.3; }
+.battery {
+  width: 22px; height: 11px; border-radius: 3px;
+  border: 1.5px solid rgba(255,255,255,0.4); position: relative;
+  display: flex; align-items: center; padding: 1.5px;
+}
+.battery::after { content:''; position:absolute; right:-4px; top:50%; transform:translateY(-50%); width:3px; height:5px; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0; }
+.battery-fill { background: #30d158; border-radius: 1.5px; height: 100%; width: 70%; }
+
+/* app header */
+.app-header {
+  background: rgba(28,28,30,0.95);
+  backdrop-filter: blur(20px);
+  padding: 10px 16px 12px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+}
+.back-arrow { color: #007aff; font-size: 16px; font-weight: 500; margin-right: 2px; }
+.contact-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #1e3a5f, #1a7fe8);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; color: #fff;
+}
+.contact-info .name { font-size: 13px; font-weight: 600; color: #fff; }
+.contact-info .sub  { font-size: 10px; color: #8e8e93; }
+.header-icons { margin-left: auto; display: flex; gap: 16px; color: #007aff; font-size: 16px; }
+
+/* messages area */
+.messages {
+  background: #000;
+  padding: 12px 14px 16px;
+  min-height: 440px;
+  max-height: 440px;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 4px;
+  scroll-behavior: smooth;
+}
+.messages::-webkit-scrollbar { display: none; }
+
+/* date separator */
+.date-sep {
+  text-align: center;
+  font-size: 10px; color: #636366;
+  margin: 8px 0; font-weight: 500;
+}
+
+/* bubble */
+.bubble {
+  max-width: 76%;
+  padding: 9px 13px;
+  border-radius: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0;
+  transform: translateY(6px) scale(0.97);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  word-break: break-word;
+}
+.bubble.show { opacity: 1; transform: translateY(0) scale(1); }
+.bubble.from { /* lead — gray left */
+  background: #1c1c1e;
+  color: #fff;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+.bubble.to { /* AI — blue right */
+  background: #007aff;
+  color: #fff;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+.bubble.to.green-bubble {
+  background: #30d158;
+  color: #000;
+}
+
+/* typing indicator */
+.typing {
+  align-self: flex-end;
+  background: #007aff;
+  border-radius: 18px; border-bottom-right-radius: 4px;
+  padding: 11px 16px;
+  display: none; align-items: center; gap: 4px;
+  opacity: 0;
+  transform: translateY(6px) scale(0.97);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.typing.show { display: flex; opacity: 1; transform: translateY(0) scale(1); }
+.td { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.6); animation: tb 1.2s infinite; }
+.td:nth-child(2) { animation-delay: 0.2s; }
+.td:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tb { 0%,60%,100%{ transform:translateY(0); opacity:0.4; } 30%{ transform:translateY(-5px); opacity:1; } }
+
+/* reactions */
+.reaction { font-size: 10px; color: #636366; margin: 0 8px 4px; }
+.reaction.right { align-self: flex-end; text-align: right; }
+
+/* delivery */
+.delivery { font-size: 10px; color: #636366; align-self: flex-end; padding-right: 4px; margin-top: 1px; }
+
+/* notification overlay */
+.notif-overlay {
+  position: absolute;
+  top: 80px; left: 16px; right: 16px;
+  background: rgba(28,28,30,0.92);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
+  opacity: 0; transform: translateY(-8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 10; border: 0.5px solid rgba(255,255,255,0.08);
+}
+.notif-overlay.show { opacity: 1; transform: translateY(0); }
+.notif-icon { font-size: 22px; }
+.notif-content .app-name { font-size: 10px; color: #8e8e93; }
+.notif-content .notif-text { font-size: 12px; color: #fff; font-weight: 500; line-height: 1.3; }
+
+/* ─── bottom bar ─── */
+.input-bar {
+  background: rgba(28,28,30,0.95);
+  backdrop-filter: blur(20px);
+  padding: 8px 12px 10px;
+  display: flex; align-items: center; gap: 8px;
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+}
+.input-field {
+  flex: 1; background: #1c1c1e; border-radius: 20px;
+  padding: 8px 14px; font-size: 13px; color: #8e8e93;
+  border: none; outline: none;
+}
+.send-btn {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #007aff; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: #fff;
+}
+
+/* ─── CAPTION BAR ─── */
+.caption-bar {
+  width: 340px;
+  margin-top: 24px;
+  background: rgba(15,19,24,0.95);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px;
+  min-height: 52px;
+}
+.caption-icon { font-size: 20px; flex-shrink: 0; }
+.caption-text {
+  font-size: 13px; color: var(--text); flex: 1;
+  line-height: 1.4;
+  opacity: 0; transition: opacity 0.4s ease;
+}
+.caption-text.show { opacity: 1; }
+.caption-accent { color: var(--accent); font-weight: 600; }
+.caption-blue { color: var(--accent2); font-weight: 600; }
+
+/* ─── PROGRESS ─── */
+.progress-wrap {
+  width: 340px;
+  margin-top: 16px;
+}
+.progress-track { height: 2px; background: rgba(255,255,255,0.08); border-radius: 1px; overflow: hidden; }
+.progress-fill  { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 1px; width: 0%; transition: width 0.15s linear; }
+
+/* ─── START BUTTON ─── */
+.start-wrap {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
+  border-radius: 48px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; z-index: 20;
+  transition: opacity 0.4s ease;
+  cursor: pointer;
+}
+.start-wrap.hidden { opacity: 0; pointer-events: none; }
+.play-circle {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--accent); display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: #000;
+  box-shadow: 0 0 40px rgba(0,255,136,0.4);
+  transition: transform 0.2s;
+}
+.play-circle:hover { transform: scale(1.08); }
+.start-label { font-size: 12px; color: rgba(255,255,255,0.6); letter-spacing: 1px; text-transform: uppercase; }
+
+/* ─── HEADING ─── */
+.heading {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(22px, 5vw, 32px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  text-align: center;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.subhead {
+  font-size: 14px; color: var(--muted);
+  text-align: center; margin-bottom: 28px;
+  max-width: 340px;
+}
+
+/* ─── RESTART ─── */
+.restart-btn {
+  margin-top: 16px;
+  font-size: 12px; color: var(--muted);
+  background: none; border: 1px solid var(--border);
+  padding: 8px 20px; border-radius: 100px; cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  letter-spacing: 0.5px;
+}
+.restart-btn:hover { color: var(--text); border-color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="top-label"><div class="live-dot"></div> LeadPilot · Live Demo</div>
+
+<div class="heading">SMS → Booked.<br><span style="color:var(--accent)">Automatically.</span></div>
+<p class="subhead">Watch the AI respond to a lead in real time — no human involved.</p>
+
+<!-- ─── PHONE ─── -->
+<div class="phone-outer">
+  <div class="phone" id="phone">
+
+    <!-- start overlay -->
+    <div class="start-wrap" id="startWrap" onclick="startDemo()">
+      <div class="play-circle">▶</div>
+      <span class="start-label">Tap to watch</span>
+    </div>
+
+    <!-- notification overlay -->
+    <div class="notif-overlay" id="notifOverlay">
+      <div class="notif-icon">💬</div>
+      <div class="notif-content">
+        <div class="app-name">Messages · now</div>
+        <div class="notif-text">+1 (813) 445-2291: Hi! I need flooring installation…</div>
+      </div>
+    </div>
+
+    <!-- dynamic island -->
+    <div class="island">
+      <div class="island-cam"></div>
+      <div class="island-mic"></div>
+    </div>
+
+    <!-- status bar -->
+    <div class="status-bar">
+      <span>11:43</span>
+      <div class="signal">
+        <div class="bar bar1"></div>
+        <div class="bar bar2"></div>
+        <div class="bar bar3"></div>
+        <div class="bar bar4"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:10px">79%</span>
+        <div class="battery"><div class="battery-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- app header -->
+    <div class="app-header">
+      <span class="back-arrow">‹</span>
+      <div class="contact-avatar">T</div>
+      <div class="contact-info">
+        <div class="name">Thumbtack Lead</div>
+        <div class="sub">+1 (813) 445-2291</div>
+      </div>
+      <div class="header-icons">
+        <span>📞</span>
+        <span>⋯</span>
+      </div>
+    </div>
+
+    <!-- messages -->
+    <div class="messages" id="messages">
+      <div class="date-sep">Today 11:43 PM</div>
+
+      <!-- 1. lead message -->
+      <div class="bubble from" id="b1">
+        Hi! I need flooring installation for 3 rooms in my house. Can I get a quote? 🏠
+      </div>
+
+      <!-- 2. AI typing -->
+      <div class="typing" id="typing1">
+        <div class="td"></div><div class="td"></div><div class="td"></div>
+      </div>
+
+      <!-- 3. AI first reply -->
+      <div class="bubble to" id="b2">
+        Hi! This is the AI assistant of <strong>Denali Custom Homes</strong>. We received your request about your home project! 🏗️
+      </div>
+      <div class="delivery" id="d2">Delivered</div>
+
+      <!-- 4. AI second bubble -->
+      <div class="bubble to" id="b3">
+        We're ready to schedule a <strong>FREE in-home estimate</strong>. Just reply with your preferred day and time to confirm! 📅
+      </div>
+
+      <!-- 5. lead replies -->
+      <div class="bubble from" id="b4">
+        Tomorrow at 2pm works for me 👍
+      </div>
+
+      <!-- 6. AI typing again -->
+      <div class="typing" id="typing2">
+        <div class="td"></div><div class="td"></div><div class="td"></div>
+      </div>
+
+      <!-- 7. confirmation -->
+      <div class="bubble to green-bubble" id="b5">
+        ✅ <strong>Confirmed!</strong> Your free estimate with Denali Custom Homes is scheduled for <strong>Tuesday, Apr 22 at 2:00 PM</strong>. We'll see you then!
+      </div>
+      <div class="delivery" id="d5">Delivered · 11:44 PM</div>
+
+      <!-- 8. system note -->
+      <div class="date-sep" id="sysNote" style="color:#30d158;opacity:0;transition:opacity 0.5s">
+        ⚡ Appointment booked automatically by LeadPilot AI
+      </div>
+    </div>
+
+    <!-- input bar -->
+    <div class="input-bar">
+      <div class="input-field" contenteditable="false">iMessage</div>
+      <div class="send-btn">↑</div>
+    </div>
+  </div><!-- /phone -->
+</div><!-- /phone-outer -->
+
+<!-- ─── CAPTION ─── -->
+<div class="caption-bar">
+  <div class="caption-icon" id="captionIcon">💬</div>
+  <div class="caption-text" id="captionText">Press play to watch the demo</div>
+</div>
+
+<!-- ─── PROGRESS ─── -->
+<div class="progress-wrap">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+</div>
+
+<button class="restart-btn" id="restartBtn" style="display:none" onclick="restartDemo()">↺ Watch again</button>
+
+<script>
+const TOTAL_DURATION = 14000; // ms
+let progressInterval = null;
+let startTime = 0;
+
+const captions = [
+  { at: 0,    icon: '📲', text: 'Lead sends a message at <span class="caption-accent">11:43 PM</span> — you\'re asleep.' },
+  { at: 1200, icon: '🤖', text: '<span class="caption-blue">LeadPilot AI</span> detects the message and starts processing...' },
+  { at: 2800, icon: '💬', text: 'AI responds in <span class="caption-accent">under 3 seconds</span>. Personalized. Professional.' },
+  { at: 5000, icon: '📅', text: 'Lead replies with preferred time. AI <span class="caption-blue">parses the date automatically.</span>' },
+  { at: 7200, icon: '✅', text: 'Appointment <span class="caption-accent">confirmed via SMS</span>. Calendar updated. Owner notified.' },
+  { at: 9000, icon: '⚡', text: 'From first SMS to booked appointment: <span class="caption-accent">47 seconds.</span> Zero human work.' },
+];
+
+function startDemo() {
+  document.getElementById('startWrap').classList.add('hidden');
+  startTime = Date.now();
+
+  // notifications
+  delay(200,  () => show('notifOverlay'));
+  delay(2000, () => hide('notifOverlay'));
+
+  // messages
+  delay(600,  () => showBubble('b1'));
+  delay(1400, () => showTyping('typing1'));
+  delay(2600, () => { hideTyping('typing1'); showBubble('b2'); });
+  delay(3200, () => { show('d2'); showBubble('b3'); });
+  delay(5200, () => showBubble('b4'));
+  delay(6200, () => showTyping('typing2'));
+  delay(7800, () => { hideTyping('typing2'); showBubble('b5'); });
+  delay(8400, () => show('d5'));
+  delay(9200, () => { document.getElementById('sysNote').style.opacity = '1'; });
+
+  // captions
+  captions.forEach(c => {
+    delay(c.at, () => setCaption(c.icon, c.text));
+  });
+
+  // progress
+  progressInterval = setInterval(updateProgress, 80);
+
+  // end
+  delay(TOTAL_DURATION, () => {
+    clearInterval(progressInterval);
+    document.getElementById('progressFill').style.width = '100%';
+    document.getElementById('restartBtn').style.display = 'inline-block';
+    setCaption('🎉', '<span class="caption-accent">That\'s LeadPilot.</span> Every lead answered. Every night. Automatically.');
+  });
+}
+
+function updateProgress() {
+  const pct = Math.min(100, ((Date.now() - startTime) / TOTAL_DURATION) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function setCaption(icon, text) {
+  const ct = document.getElementById('captionText');
+  const ci = document.getElementById('captionIcon');
+  ct.classList.remove('show');
+  setTimeout(() => {
+    ci.textContent = icon;
+    ct.innerHTML = text;
+    ct.classList.add('show');
+  }, 150);
+}
+
+function showBubble(id) {
+  const el = document.getElementById(id);
+  el.classList.add('show');
+  const msgs = document.getElementById('messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping(id) {
+  const el = document.getElementById(id);
+  el.classList.add('show');
+  const msgs = document.getElementById('messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function show(id) { document.getElementById(id).classList.add('show'); }
+function hide(id) { document.getElementById(id).classList.remove('show'); }
+
+function restartDemo() {
+  location.reload();
+}
+
+function delay(ms, fn) { return setTimeout(fn, ms); }
+</script>
+</body>
+</html>
