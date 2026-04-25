@@ -451,9 +451,89 @@ body::before {
 <button class="restart-btn" id="restartBtn" style="display:none" onclick="restartDemo()">↺ Watch again</button>
 
 <script>
-const TOTAL_DURATION = 14000; // ms
+const TOTAL_DURATION = 14000;
 let progressInterval = null;
 let startTime = 0;
+let audioCtx = null;
+
+// ─── AUDIO ENGINE ───
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTone(freq, type, startT, duration, gainVal, fadeOut = true) {
+  const ctx = getCtx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, startT);
+  gain.gain.setValueAtTime(gainVal, startT);
+  if (fadeOut) gain.gain.exponentialRampToValueAtTime(0.001, startT + duration);
+  osc.start(startT);
+  osc.stop(startT + duration + 0.01);
+}
+
+// iOS-style message received chime (two-note ding)
+function soundReceive() {
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+  playTone(1046, 'sine', t,       0.12, 0.18);
+  playTone(1318, 'sine', t + 0.1, 0.18, 0.15);
+}
+
+// iMessage sent sound (single soft pop)
+function soundSend() {
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+  playTone(880, 'sine', t,        0.08, 0.12);
+  playTone(1108,'sine', t + 0.06, 0.14, 0.10);
+}
+
+// Notification banner ping (higher, crisper)
+function soundNotif() {
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+  playTone(1568, 'sine', t,        0.10, 0.20);
+  playTone(1760, 'sine', t + 0.09, 0.16, 0.16);
+  playTone(2093, 'sine', t + 0.18, 0.20, 0.12);
+}
+
+// Success chime (booking confirmed — ascending 3-note)
+function soundSuccess() {
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+  playTone(523,  'sine', t,        0.22, 0.22);
+  playTone(659,  'sine', t + 0.15, 0.22, 0.20);
+  playTone(784,  'sine', t + 0.30, 0.22, 0.22);
+  playTone(1046, 'sine', t + 0.45, 0.30, 0.18);
+}
+
+// Soft typing click
+function soundType() {
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length) * 0.15;
+  const src = ctx.createBufferSource();
+  const gain = ctx.createGain();
+  src.buffer = buf;
+  src.connect(gain);
+  gain.connect(ctx.destination);
+  gain.gain.setValueAtTime(0.6, t);
+  src.start(t);
+}
+
+// AI processing blip (short sci-fi beep)
+function soundBlip() {
+  const ctx = getCtx();
+  const t = ctx.currentTime;
+  playTone(440, 'square', t,        0.06, 0.06);
+  playTone(880, 'square', t + 0.05, 0.06, 0.05);
+}
 
 const captions = [
   { at: 0,    icon: '📲', text: 'Lead sends a message at <span class="caption-accent">11:43 PM</span> — you\'re asleep.' },
@@ -469,17 +549,28 @@ function startDemo() {
   startTime = Date.now();
 
   // notifications
-  delay(200,  () => show('notifOverlay'));
+  delay(200,  () => { show('notifOverlay'); soundNotif(); });
   delay(2000, () => hide('notifOverlay'));
 
-  // messages
-  delay(600,  () => showBubble('b1'));
+  // messages + sounds
+  delay(600,  () => { showBubble('b1'); soundReceive(); });
   delay(1400, () => showTyping('typing1'));
-  delay(2600, () => { hideTyping('typing1'); showBubble('b2'); });
-  delay(3200, () => { show('d2'); showBubble('b3'); });
-  delay(5200, () => showBubble('b4'));
+
+  // typing clicks while AI types
+  [1500,1650,1800,1950,2100,2250,2400].forEach(t => delay(t, soundType));
+
+  delay(2600, () => { hideTyping('typing1'); showBubble('b2'); soundSend(); });
+  delay(3200, () => { show('d2'); showBubble('b3'); soundSend(); });
+
+  // AI processing blips
+  [1420,1520,1620,1720,1820].forEach(t => delay(t, soundBlip));
+
+  delay(5200, () => { showBubble('b4'); soundReceive(); });
   delay(6200, () => showTyping('typing2'));
-  delay(7800, () => { hideTyping('typing2'); showBubble('b5'); });
+
+  [6350,6500,6650,6800,6950,7100,7250,7400,7550,7700].forEach(t => delay(t, soundType));
+
+  delay(7800, () => { hideTyping('typing2'); showBubble('b5'); soundSuccess(); });
   delay(8400, () => show('d5'));
   delay(9200, () => { document.getElementById('sysNote').style.opacity = '1'; });
 
