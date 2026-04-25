@@ -5,18 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LeadPilot – Live Demo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #080b0f;
-  --accent: #00ff88;
-  --accent2: #00d4ff;
-  --text: #e8edf2;
-  --muted: #4a5568;
-  --border: #1e2830;
+  --bg:       #f5f7fa;
+  --white:    #ffffff;
+  --border:   #e4e8ef;
+  --border2:  #d1d9e6;
+  --text:     #111827;
+  --muted:    #6b7280;
+  --subtle:   #9ca3af;
+  --blue:     #2563eb;
+  --blue-lt:  #eff6ff;
+  --blue-mid: #bfdbfe;
+  --green:    #16a34a;
+  --green-lt: #f0fdf4;
+  --green-mid:#bbf7d0;
+  --gray-msg: #f3f4f6;
+  --shadow:   0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-lg:0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
 }
+
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
@@ -27,254 +39,225 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 24px;
-  overflow-x: hidden;
+  padding: 48px 24px 60px;
 }
 
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background: radial-gradient(ellipse 800px 600px at 50% 20%, rgba(0,255,136,0.05), transparent 70%),
-              radial-gradient(ellipse 500px 400px at 80% 80%, rgba(0,212,255,0.05), transparent 70%);
-  pointer-events: none;
+/* ─── HEADER ─── */
+.site-header {
+  position: fixed; top: 0; left: 0; right: 0;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 56px;
+  z-index: 100;
 }
-
-/* ─── TOP LABEL ─── */
-.top-label {
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--accent);
-  opacity: 0.7;
-  margin-bottom: 20px;
+.logo {
+  font-weight: 700; font-size: 16px; color: var(--text); letter-spacing: -0.4px;
   display: flex; align-items: center; gap: 8px;
 }
-.live-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--accent);
-  animation: blink 1.4s infinite;
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); }
+.live-pill {
+  font-size: 11px; font-weight: 600; color: var(--green);
+  background: var(--green-lt); border: 1px solid var(--green-mid);
+  padding: 3px 10px; border-radius: 100px;
+  display: flex; align-items: center; gap: 5px;
 }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.live-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); animation: blink 1.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
 
-/* ─── PHONE ─── */
+/* ─── HERO TEXT ─── */
+.hero {
+  text-align: center;
+  margin-top: 80px;
+  margin-bottom: 36px;
+}
+.eyebrow {
+  font-size: 12px; font-weight: 500; color: var(--blue);
+  letter-spacing: 0.5px; margin-bottom: 14px;
+  text-transform: uppercase;
+}
+h1 {
+  font-size: clamp(28px, 5vw, 44px);
+  font-weight: 800; letter-spacing: -1.5px;
+  line-height: 1.1; color: var(--text); margin-bottom: 12px;
+}
+h1 span { color: var(--blue); }
+.sub {
+  font-size: 16px; color: var(--muted); font-weight: 400;
+  max-width: 380px; margin: 0 auto; line-height: 1.6;
+}
+
+/* ─── PHONE SHELL ─── */
 .phone-outer {
   position: relative;
-  width: 340px;
+  width: 320px;
 }
 
 .phone {
-  width: 340px;
-  background: #000;
-  border-radius: 48px;
-  border: 2px solid #2a2a2a;
-  padding: 16px 0 24px;
+  width: 320px;
+  background: #fff;
+  border-radius: 44px;
+  border: 1.5px solid #c8cdd6;
+  padding: 14px 0 20px;
   box-shadow:
-    0 0 0 7px #111,
-    0 0 0 8px #222,
-    0 40px 100px rgba(0,0,0,0.8),
-    0 0 80px rgba(0,255,136,0.04);
+    0 0 0 6px #e8eaf0,
+    0 0 0 7px #d8dce6,
+    0 32px 80px rgba(0,0,0,0.14),
+    0 8px 24px rgba(0,0,0,0.08);
   overflow: hidden;
   position: relative;
 }
 
 /* dynamic island */
 .island {
-  width: 110px; height: 30px;
-  background: #000;
+  width: 100px; height: 28px;
+  background: #1a1a1a;
   border-radius: 20px;
   margin: 0 auto 10px;
-  border: 1.5px solid #1a1a1a;
   display: flex; align-items: center; justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
-.island-cam { width: 12px; height: 12px; border-radius: 50%; background: #0a0a0a; border: 2px solid #1a1a1a; }
-.island-mic { width: 4px; height: 4px; border-radius: 50%; background: #1a1a1a; }
+.island-cam { width: 10px; height: 10px; border-radius: 50%; background: #2a2a2a; border: 2px solid #333; }
+.island-mic { width: 3px; height: 3px; border-radius: 50%; background: #333; }
 
 /* status bar */
 .status-bar {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 24px 10px;
-  font-size: 11px; font-weight: 600; color: #fff;
+  padding: 0 22px 8px;
+  font-size: 11px; font-weight: 600; color: #111;
 }
 .signal { display: flex; align-items: flex-end; gap: 2px; }
-.bar { background: #fff; border-radius: 1px; width: 3px; }
-.bar1 { height: 4px; }
-.bar2 { height: 7px; }
-.bar3 { height: 10px; }
-.bar4 { height: 13px; opacity: 0.3; }
-.battery {
-  width: 22px; height: 11px; border-radius: 3px;
-  border: 1.5px solid rgba(255,255,255,0.4); position: relative;
-  display: flex; align-items: center; padding: 1.5px;
-}
-.battery::after { content:''; position:absolute; right:-4px; top:50%; transform:translateY(-50%); width:3px; height:5px; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0; }
-.battery-fill { background: #30d158; border-radius: 1.5px; height: 100%; width: 70%; }
+.bar { background: #111; border-radius: 1px; width: 3px; }
+.bar1{ height: 4px; } .bar2{ height: 7px; } .bar3{ height: 10px; } .bar4{ height: 13px; opacity:0.25; }
+.battery { width: 20px; height: 10px; border-radius: 3px; border: 1.5px solid rgba(0,0,0,0.3); position:relative; display:flex; align-items:center; padding:1.5px; }
+.battery::after { content:''; position:absolute; right:-3.5px; top:50%; transform:translateY(-50%); width:2.5px; height:5px; background:rgba(0,0,0,0.25); border-radius:0 1px 1px 0; }
+.battery-fill { background: #30d158; border-radius:1.5px; height:100%; width:70%; }
 
-/* app header */
+/* iMessage header */
 .app-header {
-  background: rgba(28,28,30,0.95);
+  background: rgba(249,249,249,0.95);
   backdrop-filter: blur(20px);
-  padding: 10px 16px 12px;
-  display: flex; align-items: center; gap: 10px;
-  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+  padding: 8px 14px 10px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 0.5px solid rgba(0,0,0,0.08);
 }
-.back-arrow { color: #007aff; font-size: 16px; font-weight: 500; margin-right: 2px; }
+.back-arrow { color: #007aff; font-size: 15px; font-weight: 500; }
 .contact-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: linear-gradient(135deg, #1e3a5f, #1a7fe8);
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
   display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 14px; color: #fff;
+  font-weight: 700; font-size: 13px; color: #fff;
 }
-.contact-info .name { font-size: 13px; font-weight: 600; color: #fff; }
+.contact-info .name { font-size: 12px; font-weight: 600; color: #111; }
 .contact-info .sub  { font-size: 10px; color: #8e8e93; }
-.header-icons { margin-left: auto; display: flex; gap: 16px; color: #007aff; font-size: 16px; }
+.header-icons { margin-left: auto; display: flex; gap: 14px; color: #007aff; font-size: 15px; }
 
-/* messages area */
+/* messages */
 .messages {
-  background: #000;
-  padding: 12px 14px 16px;
-  min-height: 440px;
-  max-height: 440px;
+  background: #fff;
+  padding: 10px 12px 14px;
+  min-height: 400px;
+  max-height: 400px;
   overflow-y: auto;
-  display: flex; flex-direction: column; gap: 4px;
+  display: flex; flex-direction: column; gap: 2px;
   scroll-behavior: smooth;
 }
 .messages::-webkit-scrollbar { display: none; }
 
-/* date separator */
 .date-sep {
   text-align: center;
-  font-size: 10px; color: #636366;
-  margin: 8px 0; font-weight: 500;
+  font-size: 10px; color: #8e8e93; font-weight: 500;
+  margin: 6px 0;
 }
 
-/* bubble */
 .bubble {
-  max-width: 76%;
+  max-width: 74%;
   padding: 9px 13px;
   border-radius: 18px;
-  font-size: 13px;
-  line-height: 1.45;
-  opacity: 0;
-  transform: translateY(6px) scale(0.97);
+  font-size: 13px; line-height: 1.45;
+  opacity: 0; transform: translateY(6px) scale(0.97);
   transition: opacity 0.35s ease, transform 0.35s ease;
   word-break: break-word;
 }
 .bubble.show { opacity: 1; transform: translateY(0) scale(1); }
-.bubble.from { /* lead — gray left */
-  background: #1c1c1e;
-  color: #fff;
+.bubble.from {
+  background: var(--gray-msg);
+  color: #111;
   align-self: flex-start;
   border-bottom-left-radius: 4px;
 }
-.bubble.to { /* AI — blue right */
+.bubble.to {
   background: #007aff;
   color: #fff;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
 }
-.bubble.to.green-bubble {
-  background: #30d158;
-  color: #000;
+.bubble.to.confirmed {
+  background: #34c759;
+  color: #fff;
 }
 
-/* typing indicator */
 .typing {
   align-self: flex-end;
   background: #007aff;
   border-radius: 18px; border-bottom-right-radius: 4px;
-  padding: 11px 16px;
+  padding: 10px 14px;
   display: none; align-items: center; gap: 4px;
-  opacity: 0;
-  transform: translateY(6px) scale(0.97);
+  opacity: 0; transform: translateY(6px) scale(0.97);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 .typing.show { display: flex; opacity: 1; transform: translateY(0) scale(1); }
-.td { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.6); animation: tb 1.2s infinite; }
-.td:nth-child(2) { animation-delay: 0.2s; }
-.td:nth-child(3) { animation-delay: 0.4s; }
-@keyframes tb { 0%,60%,100%{ transform:translateY(0); opacity:0.4; } 30%{ transform:translateY(-5px); opacity:1; } }
+.td { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.7); animation: tb 1.2s infinite; }
+.td:nth-child(2){ animation-delay:.2s; } .td:nth-child(3){ animation-delay:.4s; }
+@keyframes tb { 0%,60%,100%{ transform:translateY(0); opacity:.4; } 30%{ transform:translateY(-4px); opacity:1; } }
 
-/* reactions */
-.reaction { font-size: 10px; color: #636366; margin: 0 8px 4px; }
-.reaction.right { align-self: flex-end; text-align: right; }
+.delivery { font-size: 10px; color: #8e8e93; align-self: flex-end; padding-right: 2px; margin-top: 1px; }
 
-/* delivery */
-.delivery { font-size: 10px; color: #636366; align-self: flex-end; padding-right: 4px; margin-top: 1px; }
-
-/* notification overlay */
+/* notification */
 .notif-overlay {
   position: absolute;
-  top: 80px; left: 16px; right: 16px;
-  background: rgba(28,28,30,0.92);
+  top: 72px; left: 12px; right: 12px;
+  background: rgba(252,252,252,0.96);
   backdrop-filter: blur(20px);
-  border-radius: 16px;
-  padding: 12px 14px;
+  border-radius: 14px;
+  padding: 10px 12px;
   display: flex; align-items: center; gap: 10px;
   opacity: 0; transform: translateY(-8px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  z-index: 10; border: 0.5px solid rgba(255,255,255,0.08);
+  transition: all 0.4s ease;
+  z-index: 10;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  border: 0.5px solid rgba(0,0,0,0.07);
 }
 .notif-overlay.show { opacity: 1; transform: translateY(0); }
-.notif-icon { font-size: 22px; }
-.notif-content .app-name { font-size: 10px; color: #8e8e93; }
-.notif-content .notif-text { font-size: 12px; color: #fff; font-weight: 500; line-height: 1.3; }
+.notif-icon { font-size: 20px; }
+.notif-app  { font-size: 9px; color: #8e8e93; font-weight: 500; }
+.notif-text { font-size: 11px; color: #111; font-weight: 500; line-height: 1.3; }
 
-/* ─── bottom bar ─── */
+/* input bar */
 .input-bar {
-  background: rgba(28,28,30,0.95);
-  backdrop-filter: blur(20px);
-  padding: 8px 12px 10px;
-  display: flex; align-items: center; gap: 8px;
-  border-top: 0.5px solid rgba(255,255,255,0.08);
+  background: rgba(249,249,249,0.95);
+  padding: 8px 10px 8px;
+  display: flex; align-items: center; gap: 7px;
+  border-top: 0.5px solid rgba(0,0,0,0.08);
 }
 .input-field {
-  flex: 1; background: #1c1c1e; border-radius: 20px;
-  padding: 8px 14px; font-size: 13px; color: #8e8e93;
-  border: none; outline: none;
+  flex: 1; background: #ebebeb; border-radius: 18px;
+  padding: 7px 12px; font-size: 13px; color: #8e8e93;
+  font-family: 'Inter', sans-serif;
 }
 .send-btn {
-  width: 30px; height: 30px; border-radius: 50%;
+  width: 28px; height: 28px; border-radius: 50%;
   background: #007aff; display: flex; align-items: center; justify-content: center;
-  font-size: 14px; color: #fff;
+  font-size: 13px; color: #fff;
 }
 
-/* ─── CAPTION BAR ─── */
-.caption-bar {
-  width: 340px;
-  margin-top: 24px;
-  background: rgba(15,19,24,0.95);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 14px 18px;
-  display: flex; align-items: center; gap: 12px;
-  min-height: 52px;
-}
-.caption-icon { font-size: 20px; flex-shrink: 0; }
-.caption-text {
-  font-size: 13px; color: var(--text); flex: 1;
-  line-height: 1.4;
-  opacity: 0; transition: opacity 0.4s ease;
-}
-.caption-text.show { opacity: 1; }
-.caption-accent { color: var(--accent); font-weight: 600; }
-.caption-blue { color: var(--accent2); font-weight: 600; }
-
-/* ─── PROGRESS ─── */
-.progress-wrap {
-  width: 340px;
-  margin-top: 16px;
-}
-.progress-track { height: 2px; background: rgba(255,255,255,0.08); border-radius: 1px; overflow: hidden; }
-.progress-fill  { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 1px; width: 0%; transition: width 0.15s linear; }
-
-/* ─── START BUTTON ─── */
+/* start overlay */
 .start-wrap {
   position: absolute; inset: 0;
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(4px);
-  border-radius: 48px;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(6px);
+  border-radius: 44px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 12px; z-index: 20;
   transition: opacity 0.4s ease;
@@ -282,91 +265,119 @@ body::before {
 }
 .start-wrap.hidden { opacity: 0; pointer-events: none; }
 .play-circle {
-  width: 64px; height: 64px; border-radius: 50%;
-  background: var(--accent); display: flex; align-items: center; justify-content: center;
-  font-size: 24px; color: #000;
-  box-shadow: 0 0 40px rgba(0,255,136,0.4);
-  transition: transform 0.2s;
+  width: 60px; height: 60px; border-radius: 50%;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #fff;
+  box-shadow: 0 4px 20px rgba(37,99,235,0.35);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.play-circle:hover { transform: scale(1.08); }
-.start-label { font-size: 12px; color: rgba(255,255,255,0.6); letter-spacing: 1px; text-transform: uppercase; }
+.play-circle:hover { transform: scale(1.06); box-shadow: 0 6px 28px rgba(37,99,235,0.45); }
+.start-label { font-size: 12px; color: var(--muted); font-weight: 500; letter-spacing: 0.3px; }
 
-/* ─── HEADING ─── */
-.heading {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(22px, 5vw, 32px);
-  font-weight: 800;
-  letter-spacing: -1px;
-  text-align: center;
-  margin-bottom: 8px;
-  color: var(--text);
+/* ─── CAPTION CARD ─── */
+.caption-card {
+  width: 320px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-top: 20px;
+  box-shadow: var(--shadow);
+  min-height: 54px;
 }
-.subhead {
-  font-size: 14px; color: var(--muted);
-  text-align: center; margin-bottom: 28px;
-  max-width: 340px;
-}
+.caption-icon { font-size: 18px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
+.caption-text { font-size: 13px; color: var(--muted); flex: 1; line-height: 1.5; opacity:0; transition: opacity 0.4s; }
+.caption-text.show { opacity: 1; }
+.caption-text .accent { color: var(--blue); font-weight: 600; }
+.caption-text .green  { color: var(--green); font-weight: 600; }
+
+/* ─── PROGRESS ─── */
+.progress-wrap { width: 320px; margin-top: 12px; }
+.progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.progress-step { font-size: 11px; color: var(--subtle); font-weight: 500; }
+.progress-track { height: 3px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+.progress-fill  { height: 100%; background: var(--blue); border-radius: 2px; width: 0%; transition: width 0.12s linear; }
 
 /* ─── RESTART ─── */
 .restart-btn {
   margin-top: 16px;
-  font-size: 12px; color: var(--muted);
-  background: none; border: 1px solid var(--border);
-  padding: 8px 20px; border-radius: 100px; cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-  letter-spacing: 0.5px;
+  font-size: 13px; color: var(--blue); font-weight: 500;
+  background: var(--blue-lt); border: 1px solid var(--blue-mid);
+  padding: 8px 20px; border-radius: 8px; cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s;
 }
-.restart-btn:hover { color: var(--text); border-color: var(--muted); }
+.restart-btn:hover { background: var(--blue-mid); }
+
+/* ─── STEP INDICATORS ─── */
+.steps-row {
+  display: flex; gap: 4px; margin-top: 10px; width: 320px;
+  justify-content: center;
+}
+.step-pip {
+  height: 3px; flex: 1; border-radius: 2px; background: var(--border2);
+  transition: background 0.4s;
+}
+.step-pip.done   { background: var(--blue-mid); }
+.step-pip.active { background: var(--blue); }
+
+/* ─── FOOTER NOTE ─── */
+.footer-note {
+  margin-top: 28px;
+  font-size: 12px; color: var(--subtle); text-align: center;
+  line-height: 1.6;
+}
+.footer-note a { color: var(--blue); text-decoration: none; font-weight: 500; }
 </style>
 </head>
 <body>
 
-<div class="top-label"><div class="live-dot"></div> LeadPilot · Live Demo</div>
+<!-- header -->
+<header class="site-header">
+  <div class="logo"><div class="logo-dot"></div> LeadPilot</div>
+  <div class="live-pill"><div class="live-dot"></div> Live Demo</div>
+</header>
 
-<div class="heading">SMS → Booked.<br><span style="color:var(--accent)">Automatically.</span></div>
-<p class="subhead">Watch the AI respond to a lead in real time — no human involved.</p>
+<!-- hero -->
+<div class="hero">
+  <div class="eyebrow">Interactive Demo</div>
+  <h1>Lead arrives. AI responds.<br><span>Appointment booked.</span></h1>
+  <p class="sub">Watch what happens when a lead texts your business at 11 PM — while you sleep.</p>
+</div>
 
-<!-- ─── PHONE ─── -->
+<!-- phone -->
 <div class="phone-outer">
   <div class="phone" id="phone">
 
-    <!-- start overlay -->
     <div class="start-wrap" id="startWrap" onclick="startDemo()">
       <div class="play-circle">▶</div>
-      <span class="start-label">Tap to watch</span>
+      <span class="start-label">Tap to play</span>
     </div>
 
-    <!-- notification overlay -->
     <div class="notif-overlay" id="notifOverlay">
       <div class="notif-icon">💬</div>
-      <div class="notif-content">
-        <div class="app-name">Messages · now</div>
-        <div class="notif-text">+1 (813) 445-2291: Hi! I need flooring installation…</div>
+      <div>
+        <div class="notif-app">Messages · now</div>
+        <div class="notif-text">+1 (813) 445-2291: Hi! I need flooring for 3 rooms…</div>
       </div>
     </div>
 
-    <!-- dynamic island -->
-    <div class="island">
-      <div class="island-cam"></div>
-      <div class="island-mic"></div>
-    </div>
+    <div class="island"><div class="island-cam"></div><div class="island-mic"></div></div>
 
-    <!-- status bar -->
     <div class="status-bar">
       <span>11:43</span>
       <div class="signal">
-        <div class="bar bar1"></div>
-        <div class="bar bar2"></div>
-        <div class="bar bar3"></div>
-        <div class="bar bar4"></div>
+        <div class="bar bar1"></div><div class="bar bar2"></div>
+        <div class="bar bar3"></div><div class="bar bar4"></div>
       </div>
-      <div style="display:flex;align-items:center;gap:4px">
-        <span style="font-size:10px">79%</span>
+      <div style="display:flex;align-items:center;gap:3px">
+        <span style="font-size:10px;font-weight:600">79%</span>
         <div class="battery"><div class="battery-fill"></div></div>
       </div>
     </div>
 
-    <!-- app header -->
     <div class="app-header">
       <span class="back-arrow">‹</span>
       <div class="contact-avatar">T</div>
@@ -374,81 +385,84 @@ body::before {
         <div class="name">Thumbtack Lead</div>
         <div class="sub">+1 (813) 445-2291</div>
       </div>
-      <div class="header-icons">
-        <span>📞</span>
-        <span>⋯</span>
-      </div>
+      <div class="header-icons"><span>📞</span><span>⋯</span></div>
     </div>
 
-    <!-- messages -->
     <div class="messages" id="messages">
-      <div class="date-sep">Today 11:43 PM</div>
+      <div class="date-sep">Today · 11:43 PM</div>
 
-      <!-- 1. lead message -->
       <div class="bubble from" id="b1">
         Hi! I need flooring installation for 3 rooms in my house. Can I get a quote? 🏠
       </div>
 
-      <!-- 2. AI typing -->
       <div class="typing" id="typing1">
         <div class="td"></div><div class="td"></div><div class="td"></div>
       </div>
 
-      <!-- 3. AI first reply -->
       <div class="bubble to" id="b2">
         Hi! This is the AI assistant of <strong>Denali Custom Homes</strong>. We received your request about your home project! 🏗️
       </div>
       <div class="delivery" id="d2">Delivered</div>
 
-      <!-- 4. AI second bubble -->
       <div class="bubble to" id="b3">
-        We're ready to schedule a <strong>FREE in-home estimate</strong>. Just reply with your preferred day and time to confirm! 📅
+        We're ready to schedule a <strong>FREE in-home estimate</strong>. Reply with your preferred day and time to confirm! 📅
       </div>
 
-      <!-- 5. lead replies -->
       <div class="bubble from" id="b4">
         Tomorrow at 2pm works for me 👍
       </div>
 
-      <!-- 6. AI typing again -->
       <div class="typing" id="typing2">
         <div class="td"></div><div class="td"></div><div class="td"></div>
       </div>
 
-      <!-- 7. confirmation -->
-      <div class="bubble to green-bubble" id="b5">
-        ✅ <strong>Confirmed!</strong> Your free estimate with Denali Custom Homes is scheduled for <strong>Tuesday, Apr 22 at 2:00 PM</strong>. We'll see you then!
+      <div class="bubble to confirmed" id="b5">
+        ✅ <strong>Confirmed!</strong> Your free estimate is scheduled for <strong>Tue, Apr 22 at 2:00 PM</strong>. See you then!
       </div>
       <div class="delivery" id="d5">Delivered · 11:44 PM</div>
 
-      <!-- 8. system note -->
-      <div class="date-sep" id="sysNote" style="color:#30d158;opacity:0;transition:opacity 0.5s">
-        ⚡ Appointment booked automatically by LeadPilot AI
+      <div class="date-sep" id="sysNote" style="color:#16a34a;opacity:0;transition:opacity 0.5s;font-weight:600">
+        ⚡ Booked automatically by LeadPilot · 47 sec
       </div>
     </div>
 
-    <!-- input bar -->
     <div class="input-bar">
-      <div class="input-field" contenteditable="false">iMessage</div>
+      <div class="input-field">iMessage</div>
       <div class="send-btn">↑</div>
     </div>
-  </div><!-- /phone -->
-</div><!-- /phone-outer -->
 
-<!-- ─── CAPTION ─── -->
-<div class="caption-bar">
-  <div class="caption-icon" id="captionIcon">💬</div>
-  <div class="caption-text" id="captionText">Press play to watch the demo</div>
-</div>
-
-<!-- ─── PROGRESS ─── -->
-<div class="progress-wrap">
-  <div class="progress-track">
-    <div class="progress-fill" id="progressFill"></div>
   </div>
 </div>
 
+<!-- caption -->
+<div class="caption-card">
+  <div class="caption-icon" id="captionIcon">💬</div>
+  <div class="caption-text" id="captionText">Hit play to watch the AI handle a real lead</div>
+</div>
+
+<!-- progress -->
+<div class="progress-wrap">
+  <div class="progress-meta">
+    <span class="progress-step" id="progressLabel">Ready</span>
+    <span class="progress-step" id="progressTime"></span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<div class="steps-row" id="stepsRow">
+  <div class="step-pip" id="pip1"></div>
+  <div class="step-pip" id="pip2"></div>
+  <div class="step-pip" id="pip3"></div>
+  <div class="step-pip" id="pip4"></div>
+  <div class="step-pip" id="pip5"></div>
+  <div class="step-pip" id="pip6"></div>
+</div>
+
 <button class="restart-btn" id="restartBtn" style="display:none" onclick="restartDemo()">↺ Watch again</button>
+
+<p class="footer-note">
+  Built by <a href="/">LeadPilot</a> · AI Lead Response for Home Service Businesses
+</p>
 
 <script>
 const TOTAL_DURATION = 14000;
@@ -456,183 +470,138 @@ let progressInterval = null;
 let startTime = 0;
 let audioCtx = null;
 
-// ─── AUDIO ENGINE ───
 function getCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   return audioCtx;
 }
-
-function playTone(freq, type, startT, duration, gainVal, fadeOut = true) {
+function playTone(freq, type, startT, duration, gainVal) {
   const ctx = getCtx();
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
-  osc.connect(gain);
-  gain.connect(ctx.destination);
+  osc.connect(gain); gain.connect(ctx.destination);
   osc.type = type;
   osc.frequency.setValueAtTime(freq, startT);
   gain.gain.setValueAtTime(gainVal, startT);
-  if (fadeOut) gain.gain.exponentialRampToValueAtTime(0.001, startT + duration);
-  osc.start(startT);
-  osc.stop(startT + duration + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, startT + duration);
+  osc.start(startT); osc.stop(startT + duration + 0.01);
 }
-
-// iOS-style message received chime (two-note ding)
 function soundReceive() {
-  const ctx = getCtx();
-  const t = ctx.currentTime;
-  playTone(1046, 'sine', t,       0.12, 0.18);
-  playTone(1318, 'sine', t + 0.1, 0.18, 0.15);
+  const ctx = getCtx(); const t = ctx.currentTime;
+  playTone(1046,'sine',t,       0.12,0.18);
+  playTone(1318,'sine',t+0.1,   0.18,0.15);
 }
-
-// iMessage sent sound (single soft pop)
 function soundSend() {
-  const ctx = getCtx();
-  const t = ctx.currentTime;
-  playTone(880, 'sine', t,        0.08, 0.12);
-  playTone(1108,'sine', t + 0.06, 0.14, 0.10);
+  const ctx = getCtx(); const t = ctx.currentTime;
+  playTone(880, 'sine',t,       0.08,0.12);
+  playTone(1108,'sine',t+0.06,  0.14,0.10);
 }
-
-// Notification banner ping (higher, crisper)
 function soundNotif() {
-  const ctx = getCtx();
-  const t = ctx.currentTime;
-  playTone(1568, 'sine', t,        0.10, 0.20);
-  playTone(1760, 'sine', t + 0.09, 0.16, 0.16);
-  playTone(2093, 'sine', t + 0.18, 0.20, 0.12);
+  const ctx = getCtx(); const t = ctx.currentTime;
+  playTone(1568,'sine',t,       0.10,0.20);
+  playTone(1760,'sine',t+0.09,  0.16,0.16);
+  playTone(2093,'sine',t+0.18,  0.20,0.12);
 }
-
-// Success chime (booking confirmed — ascending 3-note)
 function soundSuccess() {
-  const ctx = getCtx();
-  const t = ctx.currentTime;
-  playTone(523,  'sine', t,        0.22, 0.22);
-  playTone(659,  'sine', t + 0.15, 0.22, 0.20);
-  playTone(784,  'sine', t + 0.30, 0.22, 0.22);
-  playTone(1046, 'sine', t + 0.45, 0.30, 0.18);
+  const ctx = getCtx(); const t = ctx.currentTime;
+  playTone(523, 'sine',t,       0.22,0.22);
+  playTone(659, 'sine',t+0.15,  0.22,0.20);
+  playTone(784, 'sine',t+0.30,  0.22,0.22);
+  playTone(1046,'sine',t+0.45,  0.30,0.18);
 }
-
-// Soft typing click
 function soundType() {
-  const ctx = getCtx();
-  const t = ctx.currentTime;
-  const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+  const ctx = getCtx(); const t = ctx.currentTime;
+  const buf = ctx.createBuffer(1, ctx.sampleRate*0.04, ctx.sampleRate);
   const data = buf.getChannelData(0);
-  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length) * 0.15;
+  for(let i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*(1-i/data.length)*0.15;
   const src = ctx.createBufferSource();
   const gain = ctx.createGain();
-  src.buffer = buf;
-  src.connect(gain);
-  gain.connect(ctx.destination);
-  gain.gain.setValueAtTime(0.6, t);
-  src.start(t);
-}
-
-// AI processing blip (short sci-fi beep)
-function soundBlip() {
-  const ctx = getCtx();
-  const t = ctx.currentTime;
-  playTone(440, 'square', t,        0.06, 0.06);
-  playTone(880, 'square', t + 0.05, 0.06, 0.05);
+  src.buffer = buf; src.connect(gain); gain.connect(ctx.destination);
+  gain.gain.setValueAtTime(0.6,t); src.start(t);
 }
 
 const captions = [
-  { at: 0,    icon: '📲', text: 'Lead sends a message at <span class="caption-accent">11:43 PM</span> — you\'re asleep.' },
-  { at: 1200, icon: '🤖', text: '<span class="caption-blue">LeadPilot AI</span> detects the message and starts processing...' },
-  { at: 2800, icon: '💬', text: 'AI responds in <span class="caption-accent">under 3 seconds</span>. Personalized. Professional.' },
-  { at: 5000, icon: '📅', text: 'Lead replies with preferred time. AI <span class="caption-blue">parses the date automatically.</span>' },
-  { at: 7200, icon: '✅', text: 'Appointment <span class="caption-accent">confirmed via SMS</span>. Calendar updated. Owner notified.' },
-  { at: 9000, icon: '⚡', text: 'From first SMS to booked appointment: <span class="caption-accent">47 seconds.</span> Zero human work.' },
+  { at: 0,    icon: '📲', text: 'Lead sends a message at <span class="accent">11:43 PM</span> — you\'re asleep.' },
+  { at: 1200, icon: '🤖', text: '<span class="accent">LeadPilot AI</span> detects the message instantly and starts processing...' },
+  { at: 2800, icon: '💬', text: 'AI responds in <span class="accent">under 3 seconds</span> — personalized, professional.' },
+  { at: 5000, icon: '📅', text: 'Lead replies with their preferred time. AI <span class="green">parses the date automatically.</span>' },
+  { at: 7200, icon: '✅', text: 'Appointment <span class="green">confirmed via SMS</span>. Calendar updated. Owner notified.' },
+  { at: 9000, icon: '⚡', text: 'From first SMS to booked: <span class="accent">47 seconds.</span> Zero human work required.' },
 ];
+
+const stepTimes = [0, 1200, 2600, 5000, 7800, 9200];
 
 function startDemo() {
   document.getElementById('startWrap').classList.add('hidden');
   startTime = Date.now();
 
-  // notifications
   delay(200,  () => { show('notifOverlay'); soundNotif(); });
   delay(2000, () => hide('notifOverlay'));
 
-  // messages + sounds
   delay(600,  () => { showBubble('b1'); soundReceive(); });
   delay(1400, () => showTyping('typing1'));
-
-  // typing clicks while AI types
-  [1500,1650,1800,1950,2100,2250,2400].forEach(t => delay(t, soundType));
-
+  [1500,1650,1800,1950,2100,2250,2400].forEach(t=>delay(t,soundType));
   delay(2600, () => { hideTyping('typing1'); showBubble('b2'); soundSend(); });
   delay(3200, () => { show('d2'); showBubble('b3'); soundSend(); });
 
-  // AI processing blips
-  [1420,1520,1620,1720,1820].forEach(t => delay(t, soundBlip));
-
   delay(5200, () => { showBubble('b4'); soundReceive(); });
   delay(6200, () => showTyping('typing2'));
-
-  [6350,6500,6650,6800,6950,7100,7250,7400,7550,7700].forEach(t => delay(t, soundType));
-
+  [6350,6500,6650,6800,6950,7100,7250,7400,7550,7700].forEach(t=>delay(t,soundType));
   delay(7800, () => { hideTyping('typing2'); showBubble('b5'); soundSuccess(); });
   delay(8400, () => show('d5'));
-  delay(9200, () => { document.getElementById('sysNote').style.opacity = '1'; });
+  delay(9200, () => { document.getElementById('sysNote').style.opacity='1'; });
 
-  // captions
-  captions.forEach(c => {
-    delay(c.at, () => setCaption(c.icon, c.text));
-  });
+  captions.forEach(c => delay(c.at, () => setCaption(c.icon, c.text)));
+  stepTimes.forEach((t,i) => delay(t, () => activatePip(i)));
 
-  // progress
   progressInterval = setInterval(updateProgress, 80);
 
-  // end
   delay(TOTAL_DURATION, () => {
     clearInterval(progressInterval);
     document.getElementById('progressFill').style.width = '100%';
     document.getElementById('restartBtn').style.display = 'inline-block';
-    setCaption('🎉', '<span class="caption-accent">That\'s LeadPilot.</span> Every lead answered. Every night. Automatically.');
+    for(let i=0;i<6;i++) document.getElementById('pip'+(i+1)).className = 'step-pip done';
+    setCaption('🎉', '<span class="green">That\'s LeadPilot.</span> Every lead answered. Every night. Automatically.');
+    document.getElementById('progressLabel').textContent = 'Complete';
   });
 }
 
+function activatePip(idx) {
+  for(let i=0;i<6;i++){
+    const p = document.getElementById('pip'+(i+1));
+    p.className = 'step-pip' + (i<idx ? ' done' : i===idx ? ' active' : '');
+  }
+  const labels = ['SMS Arrives','AI Detects','AI Responds','Lead Replies','Appointment','Logged'];
+  document.getElementById('progressLabel').textContent = labels[idx] || '';
+}
+
 function updateProgress() {
-  const pct = Math.min(100, ((Date.now() - startTime) / TOTAL_DURATION) * 100);
-  document.getElementById('progressFill').style.width = pct + '%';
+  const pct = Math.min(100, ((Date.now()-startTime)/TOTAL_DURATION)*100);
+  document.getElementById('progressFill').style.width = pct+'%';
+  const s = Math.floor((Date.now()-startTime)/1000);
+  document.getElementById('progressTime').textContent = s+'s';
 }
 
 function setCaption(icon, text) {
   const ct = document.getElementById('captionText');
   const ci = document.getElementById('captionIcon');
   ct.classList.remove('show');
-  setTimeout(() => {
-    ci.textContent = icon;
-    ct.innerHTML = text;
-    ct.classList.add('show');
-  }, 150);
+  setTimeout(() => { ci.textContent=icon; ct.innerHTML=text; ct.classList.add('show'); }, 150);
 }
-
 function showBubble(id) {
-  const el = document.getElementById(id);
-  el.classList.add('show');
+  document.getElementById(id).classList.add('show');
   const msgs = document.getElementById('messages');
   msgs.scrollTop = msgs.scrollHeight;
 }
-
 function showTyping(id) {
   const el = document.getElementById(id);
   el.classList.add('show');
-  const msgs = document.getElementById('messages');
-  msgs.scrollTop = msgs.scrollHeight;
+  document.getElementById('messages').scrollTop = 99999;
 }
-
-function hideTyping(id) {
-  document.getElementById(id).classList.remove('show');
-}
-
+function hideTyping(id) { document.getElementById(id).classList.remove('show'); }
 function show(id) { document.getElementById(id).classList.add('show'); }
 function hide(id) { document.getElementById(id).classList.remove('show'); }
-
-function restartDemo() {
-  location.reload();
-}
-
-function delay(ms, fn) { return setTimeout(fn, ms); }
+function delay(ms,fn){ return setTimeout(fn,ms); }
+function restartDemo(){ location.reload(); }
 </script>
 </body>
 </html>
